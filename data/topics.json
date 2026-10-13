@@ -71,5 +71,85 @@
    "ai-agents"
   ],
   "prompt": "On 12 Oct 2026 Anthropic's red team published experiments (anthropic.com/research/self-replicating-ai) suggesting small open models may be months away from self-replicating across insecure home IoT devices like cheap Android TV boxes and smart ovens, with no datacenter. Their end-to-end test simplified the break-in step and no autonomous replicator was shown. How real is the threat, and who should act?"
+ },
+ {
+  "id": "knowing-when-not-to-act",
+  "title": "Should an AI know when not to act?",
+  "tags": [
+   "governance",
+   "ai-agents",
+   "credit-risk"
+  ],
+  "prompt": "In banking, is the most valuable AI capability the judgement to abstain? When should a model decline to decide, and who sets that line?"
+ },
+ {
+  "id": "ai-declines-a-loan",
+  "title": "Should an AI ever decline a loan on its own?",
+  "tags": [
+   "credit-risk",
+   "governance",
+   "liability"
+  ],
+  "prompt": "Approvals are easy to automate. Rejections change lives. Should a machine ever say no to a borrower without a person signing it off?"
+ },
+ {
+  "id": "agents-as-customers",
+  "title": "What happens when your customer is an agent?",
+  "tags": [
+   "ai-agents",
+   "economics",
+   "credit-risk"
+  ],
+  "prompt": "If AI agents open accounts, compare products and switch banks for people, what breaks in onboarding, pricing, fraud and loyalty?"
+ },
+ {
+  "id": "who-audits-the-auditor",
+  "title": "Who audits an AI that audits?",
+  "tags": [
+   "governance",
+   "liability",
+   "ai-agents"
+  ],
+  "prompt": "Banks are starting to use AI to review transactions, controls and even other models. What evidence would convince a regulator that the reviewer itself is sound?"
+ },
+ {
+  "id": "explanation-or-accuracy",
+  "title": "Would you trade accuracy for an explanation?",
+  "tags": [
+   "credit-risk",
+   "governance",
+   "philosophy"
+  ],
+  "prompt": "A slightly better model nobody can explain, or a slightly worse one everyone understands. Which should a regulated lender choose, and does the answer change with the stakes?"
+ },
+ {
+  "id": "agent-fraud-arms-race",
+  "title": "Will fraud agents beat fraud detection?",
+  "tags": [
+   "ai-agents",
+   "credit-risk",
+   "economics"
+  ],
+  "prompt": "Fraudsters now have agents too. Does automation favour attack or defence in payments and lending, and what changes when both sides learn in real time?"
+ },
+ {
+  "id": "small-models-sovereignty",
+  "title": "Do regulated firms need their own small models?",
+  "tags": [
+   "governance",
+   "hardware",
+   "economics"
+  ],
+  "prompt": "Is running small, locally hosted models a matter of sovereignty and control, or an expensive way to fall behind the frontier?"
+ },
+ {
+  "id": "robot-at-the-branch",
+  "title": "Would you trust a robot at the bank branch?",
+  "tags": [
+   "robotics",
+   "liability",
+   "economics"
+  ],
+  "prompt": "Humanoid and service robots are moving into retail spaces. What would a bank branch robot need to do, and not do, to be trusted?"
  }
 ]
