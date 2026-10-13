@@ -35,9 +35,18 @@ class ChatClient:
         body = json.dumps({"model": self.model, "temperature": self.temperature, "max_tokens": max_tokens,
                            "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}).encode()
         req = urllib.request.Request(self.base_url + "/chat/completions", data=body,
-                                     headers={"Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"})
-        with urllib.request.urlopen(req, timeout=60) as r:
-            return json.load(r)["choices"][0]["message"]["content"].strip()
+                                     headers={"User-Agent": "agora-orchestrator/0.1", "Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"})
+        import time
+        from urllib.error import HTTPError
+        for attempt in range(6):
+            try:
+                with urllib.request.urlopen(req, timeout=60) as r:
+                    return json.load(r)["choices"][0]["message"]["content"].strip()
+            except HTTPError as e:
+                if e.code not in (429, 500, 502, 503) or attempt == 5:
+                    raise
+                ra = e.headers.get("retry-after")
+                time.sleep(float(ra) if ra and ra.replace(".", "").isdigit() else 2 ** attempt * 3)
 
 
 class MockClient:

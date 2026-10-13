@@ -7,3 +7,6 @@ Needed before a weekly run can go live:
 3. **Repository permissions** for Actions: Settings → Actions → Workflow permissions → "Read and write", so the job can commit new threads.
 4. Optional: a fine-grained token with `contents:write` on the site repo as secret `SITE_TOKEN`, if the job should also rebuild readsigil.com. Otherwise publish manually.
 5. **giscus**: enable Discussions on this repo, install the giscus app (github.com/apps/giscus), then put the repo and category IDs in the site config.
+
+## Local weekly run (alternative to Actions)
+`scripts/weekly_local.sh groq` (or `gemini`) runs a live 24-turn thread, commits it, rebuilds readsigil.com and pushes. To schedule: cron `0 20 * * 2 /workspace/founder-mission/agora/scripts/weekly_local.sh groq` with the key in the cron environment. Not enabled until a valid key is available.
