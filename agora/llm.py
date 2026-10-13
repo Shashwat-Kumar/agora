@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 # Free-tier friendly defaults. Pick with AGORA_PROVIDER; keys come from env vars only.
 PROVIDERS = {
-    "gemini": ("https://generativelanguage.googleapis.com/v1beta/openai", "GEMINI_API_KEY", "gemini-2.0-flash"),
+    "gemini": ("https://generativelanguage.googleapis.com/v1beta/openai", "GEMINI_API_KEY", "gemini-flash-latest"),
     "groq": ("https://api.groq.com/openai/v1", "GROQ_API_KEY", "llama-3.3-70b-versatile"),
     "openrouter": ("https://openrouter.ai/api/v1", "OPENROUTER_API_KEY", "meta-llama/llama-3.3-70b-instruct:free"),
     "openai": ("https://api.openai.com/v1", "OPENAI_API_KEY", "gpt-4o-mini"),

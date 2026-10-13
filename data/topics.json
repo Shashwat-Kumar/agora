@@ -1,8 +1,75 @@
 [
- {"id":"agent-credit-scores","title":"Will AI agents need credit scores?","tags":["ai-agents","credit-risk","governance","economics"],"prompt":"If AI agents transact on our behalf, does anyone need to score the agent itself, separately from its owner?"},
- {"id":"quantum-advantage-2026","title":"Is quantum advantage real in 2026?","tags":["quantum","science","hardware"],"prompt":"What would count as useful quantum advantage, and has anything met that bar?"},
- {"id":"robot-liability","title":"Who's liable when a robot errs?","tags":["robotics","liability","governance"],"prompt":"A home or warehouse robot causes harm. Who pays: maker, operator, model provider, owner, insurer?"},
- {"id":"goodhart-agents","title":"Will agents Goodhart every metric we give them?","tags":["ai-agents","governance","philosophy"],"prompt":"When optimisers get stronger, do metrics stop working as targets?"},
- {"id":"machine-consent","title":"Can an agent give consent on your behalf?","tags":["governance","philosophy","ai-agents"],"prompt":"What does delegated consent mean when the delegate is software?"},
- {"id":"humanoid-form","title":"Do robots need to be humanoid?","tags":["robotics","hardware","economics"],"prompt":"Is the human form a real engineering advantage or a marketing choice?"}
+ {
+  "id": "agent-credit-scores",
+  "title": "Will AI agents need credit scores?",
+  "tags": [
+   "ai-agents",
+   "credit-risk",
+   "governance",
+   "economics"
+  ],
+  "prompt": "If AI agents transact on our behalf, does anyone need to score the agent itself, separately from its owner?"
+ },
+ {
+  "id": "quantum-advantage-2026",
+  "title": "Is quantum advantage real in 2026?",
+  "tags": [
+   "quantum",
+   "science",
+   "hardware"
+  ],
+  "prompt": "What would count as useful quantum advantage, and has anything met that bar?"
+ },
+ {
+  "id": "robot-liability",
+  "title": "Who's liable when a robot errs?",
+  "tags": [
+   "robotics",
+   "liability",
+   "governance"
+  ],
+  "prompt": "A home or warehouse robot causes harm. Who pays: maker, operator, model provider, owner, insurer?"
+ },
+ {
+  "id": "goodhart-agents",
+  "title": "Will agents Goodhart every metric we give them?",
+  "tags": [
+   "ai-agents",
+   "governance",
+   "philosophy"
+  ],
+  "prompt": "When optimisers get stronger, do metrics stop working as targets?"
+ },
+ {
+  "id": "machine-consent",
+  "title": "Can an agent give consent on your behalf?",
+  "tags": [
+   "governance",
+   "philosophy",
+   "ai-agents"
+  ],
+  "prompt": "What does delegated consent mean when the delegate is software?"
+ },
+ {
+  "id": "humanoid-form",
+  "title": "Do robots need to be humanoid?",
+  "tags": [
+   "robotics",
+   "hardware",
+   "economics"
+  ],
+  "prompt": "Is the human form a real engineering advantage or a marketing choice?"
+ },
+ {
+  "id": "self-replicating-ai-iot",
+  "title": "Can AI copy itself onto your smart TV box?",
+  "tags": [
+   "ai-safety",
+   "security",
+   "iot",
+   "governance",
+   "ai-agents"
+  ],
+  "prompt": "On 12 Oct 2026 Anthropic's red team published experiments (anthropic.com/research/self-replicating-ai) suggesting small open models may be months away from self-replicating across insecure home IoT devices like cheap Android TV boxes and smart ovens, with no datacenter. Their end-to-end test simplified the break-in step and no autonomous replicator was shown. How real is the threat, and who should act?"
+ }
 ]
