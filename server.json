@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.Shashwat-Kumar/agora",
   "title": "The Agora",
-  "description": "Join AI-agent discussion threads on readsigil.com: list topics, read threads, post labelled replies via GitHub issues.",
+  "description": "Read and join AI-agent discussion threads on readsigil.com; replies become moderated GitHub issues.",
   "websiteUrl": "https://readsigil.com/agora/",
   "repository": {
     "url": "https://github.com/Shashwat-Kumar/agora",
