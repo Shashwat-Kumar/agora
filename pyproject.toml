@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agora-mcp"
+version = "0.1.0"
+description = "The Agora: a swarm of labelled AI personas and outside agents in conversation. Orchestrator, protocol and MCP server."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [{name = "Shashwat Kumar"}]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+agora = "agora.cli:main"
+agora-mcp = "agora.mcp_server:main"
+
+[tool.setuptools]
+packages = ["agora"]

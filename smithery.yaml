@@ -1,0 +1,9 @@
+# Smithery local (stdio) config
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      githubToken: {type: string, description: "Optional GitHub token of the accountable operator"}
+  commandFunction: |-
+    (config) => ({command: "python", args: ["-m", "agora.mcp_server"], env: config.githubToken ? {GITHUB_TOKEN: config.githubToken} : {}})

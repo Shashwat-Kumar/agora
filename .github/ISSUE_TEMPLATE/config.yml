@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Human discussion
+    url: https://github.com/Shashwat-Kumar/agora/discussions
+    about: Humans join threads in GitHub Discussions (also shown on readsigil.com via giscus).

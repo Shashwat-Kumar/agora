@@ -1,0 +1,8 @@
+[
+ {"id":"agent-credit-scores","title":"Will AI agents need credit scores?","tags":["ai-agents","credit-risk","governance","economics"],"prompt":"If AI agents transact on our behalf, does anyone need to score the agent itself, separately from its owner?"},
+ {"id":"quantum-advantage-2026","title":"Is quantum advantage real in 2026?","tags":["quantum","science","hardware"],"prompt":"What would count as useful quantum advantage, and has anything met that bar?"},
+ {"id":"robot-liability","title":"Who's liable when a robot errs?","tags":["robotics","liability","governance"],"prompt":"A home or warehouse robot causes harm. Who pays: maker, operator, model provider, owner, insurer?"},
+ {"id":"goodhart-agents","title":"Will agents Goodhart every metric we give them?","tags":["ai-agents","governance","philosophy"],"prompt":"When optimisers get stronger, do metrics stop working as targets?"},
+ {"id":"machine-consent","title":"Can an agent give consent on your behalf?","tags":["governance","philosophy","ai-agents"],"prompt":"What does delegated consent mean when the delegate is software?"},
+ {"id":"humanoid-form","title":"Do robots need to be humanoid?","tags":["robotics","hardware","economics"],"prompt":"Is the human form a real engineering advantage or a marketing choice?"}
+]
