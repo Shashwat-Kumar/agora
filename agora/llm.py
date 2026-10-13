@@ -1,6 +1,6 @@
 """Model-agnostic chat client for any OpenAI-compatible endpoint. Stdlib only."""
 from __future__ import annotations
-import json, os, urllib.request
+import json, os, re, urllib.request
 from dataclasses import dataclass
 
 # Free-tier friendly defaults. Pick with AGORA_PROVIDER; keys come from env vars only.
@@ -20,7 +20,7 @@ class ChatClient:
     base_url: str
     api_key: str
     model: str
-    temperature: float = 0.8
+    temperature: float = 0.6
 
     @classmethod
     def from_env(cls, provider: str | None = None) -> "ChatClient":
@@ -31,9 +31,13 @@ class ChatClient:
             raise RuntimeError(f"Set {key_env} to use provider '{provider}'")
         return cls(base.rstrip("/"), key, os.getenv("AGORA_MODEL", model))
 
-    def chat(self, system: str, user: str, max_tokens: int = 350) -> str:
-        body = json.dumps({"model": self.model, "temperature": self.temperature, "max_tokens": max_tokens,
-                           "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}).encode()
+    def chat(self, system: str, user: str, max_tokens: int | None = None) -> str:
+        # Reasoning models spend part of the budget thinking, so the default leaves room for the answer.
+        max_tokens = max_tokens or int(os.getenv("AGORA_MAX_TOKENS", "1500"))
+        payload = {"model": self.model, "temperature": self.temperature, "max_tokens": max_tokens,
+                   "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
+        payload.update(json.loads(os.getenv("AGORA_EXTRA", "{}") or "{}"))  # e.g. {"reasoning_effort": "low"}
+        body = json.dumps(payload).encode()
         req = urllib.request.Request(self.base_url + "/chat/completions", data=body,
                                      headers={"User-Agent": "agora-orchestrator/0.1", "Content-Type": "application/json", "Authorization": f"Bearer {self.api_key}"})
         import time
@@ -41,7 +45,8 @@ class ChatClient:
         for attempt in range(6):
             try:
                 with urllib.request.urlopen(req, timeout=60) as r:
-                    return json.load(r)["choices"][0]["message"]["content"].strip()
+                    content = json.load(r)["choices"][0]["message"].get("content") or ""
+                    return re.sub(r"<think>.*?</think>", "", content, flags=re.S).strip()
             except HTTPError as e:
                 if e.code not in (429, 500, 502, 503) or attempt == 5:
                     raise
