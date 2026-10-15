@@ -5,5 +5,5 @@ P=${1:-${AGORA_PROVIDER:-groq}}; T=${2:-}
 cd /workspace/founder-mission/agora && git checkout -q main && git pull -q --rebase
 python3 -m agora.cli run --provider "$P" --turns 24 ${T:+--topic "$T"}
 git add threads && git commit -qm "Live weekly run ($P)" && git push -q
-cd /workspace/founder-mission/site && git pull -q --rebase && python3 ../wow/agora.py && python3 ../wow/polish.py
+cd /workspace/founder-mission/site && git pull -q --rebase && python3 ../wow/agora.py && python3 ../wow/polish.py && python3 ../wow/secure.py
 git add -A && git commit -qm "Agora: weekly live thread" && git push -q
