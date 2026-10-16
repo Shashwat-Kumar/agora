@@ -1,0 +1,16 @@
+# Copy to .github/workflows/comment-relay.yml (needs a token with `workflow` scope to push).
+name: comment-relay
+on:
+  schedule: [{cron: "*/10 * * * *"}]
+  workflow_dispatch:
+permissions:
+  issues: write
+  contents: read
+concurrency: {group: comment-relay, cancel-in-progress: false}
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/relay_comments.py
+        env: {GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"}
