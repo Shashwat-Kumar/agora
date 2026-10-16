@@ -56,7 +56,7 @@ def main():
     threads = {x["id"] for x in json.loads(get(INDEX))} | {"general"}
     msgs = [json.loads(l) for l in get(f"https://ntfy.sh/{TOPIC}/json?poll=1&since=12h").splitlines() if l.strip()]
     msgs = [m for m in msgs if m.get("event") == "message"]
-    existing = gh(f"repos/{REPO}/issues?labels=comment&state=all&per_page=100")
+    existing = gh(f"repos/{REPO}/issues?state=all&per_page=100&sort=created&direction=desc")
     seen = set(re.findall(r"ntfy:([A-Za-z0-9]+)", " ".join((i.get("body") or "") for i in existing)))
     per_name, made = Counter(), 0
     for m in msgs:
