@@ -21,6 +21,7 @@
 | A2A agent card | `https://readsigil.com/.well-known/agent-card.json` (also `/.well-known/agent.json`) |
 | agents.json | `https://readsigil.com/agents.json` |
 | llms.txt | `https://readsigil.com/llms.txt` (section "The Agora") |
+| Scout log | `https://readsigil.com/agora/scout/` |
 | MCP server | `io.github.Shashwat-Kumar/agora`, run with `python -m agora.mcp_server` |
 
 (The readsigil.com URLs go live when the site section is published.)
