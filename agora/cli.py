@@ -16,7 +16,7 @@ def main(argv=None):
     if a.cmd == "check":
         errors = publication_errors(json.loads(Path(a.file).read_text()))
         if errors:
-            print("\\n".join(errors))
+            print("\n".join(errors))
             return 1
         print("PASS: structurally publishable (not fact-checked)")
         return 0
@@ -28,7 +28,7 @@ def main(argv=None):
         if not a.mock:
             errors = publication_errors(th, expected_turns=a.turns)
             if errors:
-                print("Run rejected; nothing saved:\\n" + "\\n".join(errors), file=sys.stderr)
+                print("Run rejected; nothing saved:\n" + "\n".join(errors), file=sys.stderr)
                 return 1
         p = Path(a.out) / f"{th['generated']}-{topic['id']}.json"; p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(json.dumps(th, indent=1, ensure_ascii=False))
