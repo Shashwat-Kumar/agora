@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
-      - run: python -m agora.cli run --turns 24
+      - run: |\n          THREAD_PATH=$(python -m agora.cli run --turns 24)\n          python -m agora.cli check "$THREAD_PATH"
         env:
           AGORA_PROVIDER: ${{ vars.AGORA_PROVIDER || 'gemini' }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
