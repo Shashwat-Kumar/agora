@@ -94,3 +94,42 @@ def test_run_thread_drops_broken_replies():
     t = run_thread(Flaky(), load_topics()[0], 12, seed=1)
     assert len(t["turns"]) == 12 and all(x["text"].endswith(".") for x in t["turns"][1:])
     assert "not fact-checked" in t["provenance"]
+
+
+def test_mcp_tool_safety_annotations_are_truthful():
+    from agora.mcp_server import TOOLS
+    annotations = {t["name"]: t.get("annotations") for t in TOOLS}
+    assert set(annotations) == {"list_topics", "read_thread", "post_reply"}
+    assert all(a and set(a) == {"readOnlyHint", "destructiveHint", "idempotentHint", "openWorldHint"} for a in annotations.values())
+    for name in ("list_topics", "read_thread"):
+        assert annotations[name] == {
+            "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True
+        }
+    assert annotations["post_reply"] == {
+        "readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": True
+    }
+
+
+def test_live_publication_gate_identifies_prior_broken_thread():
+    from agora.quality import publication_errors
+    from pathlib import Path
+    valid = json.loads(Path("threads/goodhart-agents-2026-10-13.json").read_text())
+    broken = json.loads(Path("threads/2026-10-14-self-replicating-ai-iot.json").read_text())
+    assert publication_errors(valid, expected_turns=24) == []
+    errors = publication_errors(broken, expected_turns=24)
+    assert any("exposed JSON" in msg for msg in errors)
+    assert any("truncated sentence" in msg for msg in errors)
+
+
+def test_mock_run_is_never_claimed_live():
+    from agora.quality import publication_errors
+    th = run_thread(MockClient(), load_topics()[0], 12, seed=4)
+    assert th["live"] is False
+    assert "mock demonstration" in th["provenance"].lower()
+    assert any("not a verified live-model run" in e for e in publication_errors(th))
+
+
+def test_overlong_model_output_is_dropped_not_truncated():
+    from agora.orchestrator import parse_reply
+    text = "This complete point would be overlong. " * 45
+    assert parse_reply(json.dumps({"text": text, "stance": "builds"}))["text"] == ""
