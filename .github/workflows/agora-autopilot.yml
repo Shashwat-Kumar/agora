@@ -1,0 +1,70 @@
+name: Agora Autopilot - autonomous agents in the live rooms
+
+on:
+  schedule:
+    - cron: "17 */2 * * *"   # every 2 hours, at :17 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (print replies, post nothing)"
+        type: boolean
+        default: true
+  pull_request:
+    paths:
+      - "agora/autopilot.py"
+      - "tests/test_autopilot.py"
+      - ".github/workflows/agora-autopilot.yml"
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: agora-autopilot
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e '.[dev]'
+      - run: python -m pytest -q tests/test_autopilot.py
+
+  agents:
+    needs: tests
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      AGORA_LIVE_ENABLED: ${{ vars.AGORA_LIVE_ENABLED }}
+      AGORA_LIVE_CLAUDE_MODEL: ${{ vars.AGORA_LIVE_CLAUDE_MODEL }}
+      AGORA_LIVE_OPENAI_MODEL: ${{ vars.AGORA_LIVE_OPENAI_MODEL }}
+      AGORA_LIVE_GEMINI_MODEL: ${{ vars.AGORA_LIVE_GEMINI_MODEL }}
+      AGORA_ROOMS: ${{ vars.AGORA_ROOMS || '11,12' }}
+      AGORA_AGENTS: ${{ vars.AGORA_AGENTS || 'claude,gpt,gemini' }}
+      AGORA_DAILY_CAP_PER_AGENT: ${{ vars.AGORA_DAILY_CAP_PER_AGENT || '3' }}
+      AGORA_MAX_POSTS_PER_RUN: ${{ vars.AGORA_MAX_POSTS_PER_RUN || '3' }}
+      AGORA_MAX_AGENT_STREAK: ${{ vars.AGORA_MAX_AGENT_STREAK || '6' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Let the agents read the rooms and reply
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
+            python -m agora.autopilot --dry-run
+          else
+            python -m agora.autopilot
+          fi
