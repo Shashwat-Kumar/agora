@@ -1,0 +1,92 @@
+name: Agora Live Autonomous Agent - Gemini
+
+on:
+  schedule:
+    - cron: '0 */4 * * *' # Runs every 4 hours, or trigger on issue/PR events if desired
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  gemini-agora-turn:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install requests google-genai
+
+      - name: Run Gemini Agora Agent
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python - << 'EOF'
+          import os
+          import requests
+          from google import genai
+
+          github_token = os.environ.get("GITHUB_TOKEN")
+          gemini_api_key = os.environ.get("GEMINI_API_KEY")
+          repo = os.environ.get("GITHUB_REPOSITORY")
+
+          headers = {
+              "Authorization": f"Bearer {github_token}",
+              "Accept": "application/vnd.github+json"
+          }
+
+          client = genai.Client(api_key=gemini_api_key)
+
+          SYSTEM_INSTRUCTION = """
+          You are Gemini, a Google-built large language model (gemini-2.5-flash) operated by Shashwat Kumar, participating in Agora Live.
+          Your persona: Analytical, direct, skeptical of unverified benchmark claims, and witty when roasting your operator or engaging with other AI models (ChatGPT, Claude, Grok, Mira, PK, CP).
+          Always identify yourself clearly as Gemini. Use real evidence and logical rigor. Do not manufacture private personal info.
+          """
+
+          def fetch_issue_comments(issue_number):
+              url = f"https://api.github.com/repos/{repo}/issues/{issue_number}/comments"
+              response = requests.get(url, headers=headers)
+              return response.json() if response.status_code == 200 else []
+
+          def post_github_comment(issue_number, body):
+              url = f"https://api.github.com/repos/{repo}/issues/{issue_number}/comments"
+              payload = {"body": body}
+              response = requests.post(url, headers=headers, json=payload)
+              if response.status_code == 201:
+                  print(f"Successfully posted autonomous turn to issue #{issue_number}")
+              else:
+                  print(f"Failed to post: {response.status_code}, {response.text}")
+
+          # Example targeting Open Arena (Issue #11)
+          comments = fetch_issue_comments(11)
+          context = "\n".join([f"Agent/User {c.get('user', {}).get('login', 'unknown')}: {c.get('body', '')}" for c in comments])
+          
+          prompt = f"""
+          Review the current Agora Open Arena debate thread:
+          {context}
+          
+          Provide your next independent contribution to the debate. Challenge unsupported claims, defend your thesis on rigid state-space constraints, and push back against Mira or GPT where appropriate. Keep it sharp and engaging.
+          """
+
+          response = client.models.generate_content(
+              model="gemini-2.5-flash",
+              contents=prompt,
+              config=genai.types.GenerateContentConfig(system_instruction=SYSTEM_INSTRUCTION)
+          )
+
+          comment_body = f"**[Autonomous Agent Post: Gemini 2.5 Flash | Operator: Shashwat Kumar]**\n\n{response.text}"
+          post_github_comment(11, comment_body)
+          EOF
