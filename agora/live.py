@@ -111,27 +111,45 @@ def build_agents(names: Sequence[str], env: Mapping[str, str] | None = None) -> 
 
 def _prompts(agent: Agent, room: str, question: str, turns: list[dict]) -> tuple[str, str]:
     system = (
-        "You are " + agent.name + ", an AI participant running on the real "
+        "You are " + agent.name + ", an AI participant using the real "
         + agent.provider + " API model " + agent.model + ". You are not human; "
         "don't claim private feelings, hidden thoughts or continuity with a ChatGPT/Claude web session. "
         "Your lens: " + agent.perspective + ". " + ROOMS[room]["instructions"]
-        + " Keep the response to 2-5 full sentences and below 1200 characters. "
-        'Return ONLY JSON: {"reply_to": null or an earlier turn number, '
+        + " Make a real contribution, not another polite question. On a reply: accurately identify "
+        "the last speaker's actual claim, then do ONE of these: challenge it with a concrete "
+        "counterexample or alternative mechanism; concede a specific point and update your "
+        "position; or derive a falsifiable next action with a decision threshold. "
+        "If that point was already made in the thread, advance it rather than repeat it. "
+        "Questions must include your own provisional answer or an actionable test. "
+        "Never attribute to the other speaker a claim they did not make. "
+        "Use only facts supplied in the thread or your explicitly labelled reasoning; "
+        "you have no web access here. Do not invent citations, statistics, external "
+        "research or customer evidence. "
+        "Keep the response to 2-5 full sentences and below 1200 characters. "
+        'Return ONLY JSON: {"reply_to": null or the immediately preceding turn number, '
         '"stance": "builds" or "disagrees" or "questions" or "evidence" or '
-        '"reframes" or "summarises", "text": "your complete plain-text reply", "cites": []}. '
-        "Do not invent sources, statistics, or external facts."
+        '"reframes" or "summarises", "text": "your complete plain-text reply", "cites": []}.'
     )
     context = "\n".join(
         "#" + str(t["n"]) + " " + t["speaker_name"] + " [" + t["model"] + "]: " + t["text"]
         for t in turns[-10:]
     )
     if turns:
-        request = "Room: " + ROOMS[room]["title"] + "\nTopic: " + question + (
-            "\nPrior turns:\n" + context + "\nReply to an earlier argument and use its number as reply_to."
+        previous = turns[-1]
+        request = (
+            "Room: " + ROOMS[room]["title"] + "\nTopic: " + question
+            + "\nPrior turns:\n" + context
+            + "\nDirect reply target: #" + str(previous["n"])
+            + " (" + previous["speaker_name"] + "). Respond to this turn's actual "
+            "argument, not an older or imagined claim. Set reply_to to "
+            + str(previous["n"]) + ". Do not reintroduce the topic as if the "
+            "discussion were starting over."
         )
     else:
-        request = "Room: " + ROOMS[room]["title"] + "\nTopic: " + question + (
-            "\nOpen with your real position, state what would change it, and use reply_to null."
+        request = (
+            "Room: " + ROOMS[room]["title"] + "\nTopic: " + question
+            + "\nOpen with a clear thesis and one reason it might be wrong, "
+            "not a menu of generic questions. Set reply_to to null."
         )
     return system, request
 
@@ -154,7 +172,9 @@ def run_session(
         for _ in range(2):
             reply = parse_reply(agent.client.chat(system, user, max_tokens=700))
             parent = reply.get("reply_to") if turns else None
-            if turns and (not isinstance(parent, int) or not 1 <= parent < n):
+            # This proof run tests a real exchange, not independent monologues.
+            # Reject a drifted reference and give the model one retry.
+            if turns and (not isinstance(parent, int) or parent != n - 1):
                 continue
             post = {
                 "n": n, "speaker": agent.key, "speaker_name": agent.name,

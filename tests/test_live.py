@@ -1,5 +1,6 @@
 import datetime as dt
 import json
+import re
 
 import pytest
 
@@ -15,11 +16,10 @@ class LocalFakeClient:
 
     def chat(self, system, user, max_tokens=None):
         self.calls.append((system, user))
-        previous = len(self.calls)
-        match = "Prior turns:" in user
+        target = re.search(r"Direct reply target: #(\d+)", user)
         return json.dumps({
-            "reply_to": 1 if match else None,
-            "stance": "disagrees" if match else "questions",
+            "reply_to": int(target.group(1)) if target else None,
+            "stance": "disagrees" if target else "questions",
             "text": (
                 "My test position is that " + self.label
                 + " needs a named budget owner and a way to prove real demand."
@@ -67,7 +67,7 @@ def test_independent_calls_and_true_attribution(tmp_path):
     assert [len(c.calls) for c in clients] == [2, 2, 2]
     assert [x["speaker"] for x in t["turns"]] == ["gpt", "claude", "mira"] * 2
     assert t["turns"][0]["reply_to"] is None
-    assert all(x["reply_to"] == 1 for x in t["turns"][1:])
+    assert [x["reply_to"] for x in t["turns"]] == [None, 1, 2, 3, 4, 5]
     assert all(x["is_ai"] is True and x["author_type"] == "agent" for x in t["turns"])
     assert t["participants"][1]["provider"] == "anthropic"
     assert t["public"] is False
@@ -128,3 +128,59 @@ def test_anthropic_uses_native_endpoint(monkeypatch):
     assert observed["url"] == "https://api.anthropic.com/v1/messages"
     assert observed["data"]["model"] == "claude-test"
     assert observed["data"]["system"] == "sys"
+
+
+def test_argument_is_anchored_and_non_repetitive():
+    from agora.live import _prompts
+    prior = [
+        {"n": 1, "speaker_name": "GPT", "model": "gpt-test",
+         "text": "We need a named buyer, not more benchmarks."},
+        {"n": 2, "speaker_name": "Claude", "model": "claude-test",
+         "text": "But delivery work might erase the margin even with a buyer."},
+    ]
+    agent = Agent("gpt", "GPT", "Evidence", "openai", "gpt-test", LocalFakeClient("GPT"))
+    system, prompt = _prompts(agent, "arena", "Who will pay?", prior)
+    assert "Direct reply target: #2 (Claude)" in prompt
+    assert "Set reply_to to 2" in prompt
+    assert "delivery work might erase the margin" in prompt
+    assert "Never attribute to the other speaker a claim they did not make" in system
+    assert "falsifiable next action with a decision threshold" in system
+    assert "Questions must include your own provisional answer" in system
+    assert "you have no web access here" in system
+
+
+def test_older_turn_reference_gets_one_retry():
+    class DriftingClient(LocalFakeClient):
+        def chat(self, system, user, max_tokens=None):
+            target = re.search(r"Direct reply target: #(\d+)", user)
+            self.calls.append((system, user))
+            # The first reply to turn #2 incorrectly targets turn #1.
+            parent = int(target.group(1)) if target else None
+            if parent == 2 and len(self.calls) == 3:
+                parent = 1
+            return json.dumps({
+                "reply_to": parent,
+                "stance": "disagrees",
+                "text": "I disagree because the expected delivery hours can erase that margin.",
+                "cites": [],
+            })
+    client = DriftingClient("GPT")
+    agents = [Agent("gpt", "GPT", "Evidence", "openai", "gpt-test", client)]
+    thread = run_session(agents, room="arena", turns_count=3)
+    assert [t["reply_to"] for t in thread["turns"]] == [None, 1, 2]
+    assert len(client.calls) == 4
+
+
+def test_repeated_wrong_parent_fails_closed():
+    class WrongParent(LocalFakeClient):
+        def chat(self, system, user, max_tokens=None):
+            target = re.search(r"Direct reply target: #(\d+)", user)
+            return json.dumps({
+                "reply_to": 1 if target else None,
+                "stance": "disagrees",
+                "text": "I disagree because implementation costs matter more than speed alone.",
+                "cites": [],
+            })
+    agent = Agent("gpt", "GPT", "Evidence", "openai", "gpt-test", WrongParent("GPT"))
+    with pytest.raises(ValueError, match="Unsafe, malformed or truncated reply"):
+        run_session([agent], turns_count=3)
