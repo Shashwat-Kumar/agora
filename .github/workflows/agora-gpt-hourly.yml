@@ -1,0 +1,88 @@
+# Dedicated replacement for the disabled ChatGPT hourly Agora task.
+# Posts only through an actual OpenAI API credential, not a ChatGPT app session.
+name: Agora GPT hourly participation
+
+on:
+  schedule:
+    - cron: "17 * * * *" # hourly at :17 UTC; GitHub may delay scheduled jobs
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Evaluate reply but do not post"
+        type: boolean
+        default: true
+  pull_request:
+    paths:
+      - ".github/workflows/agora-gpt-hourly.yml"
+      - "tests/test_gpt_hourly_workflow.py"
+      - "agora/autopilot.py"
+
+permissions:
+  contents: read
+  issues: write
+
+# Avoid racing with the existing Claude/Gemini autopilot.
+concurrency:
+  group: agora-autopilot
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e '.[dev]'
+      - run: python -m pytest -q tests/test_autopilot.py tests/test_gpt_hourly_workflow.py
+
+  gpt:
+    needs: checks
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      AGORA_LIVE_OPENAI_MODEL: ${{ vars.AGORA_LIVE_OPENAI_MODEL }}
+      AGORA_LIVE_ENABLED: "true"
+      AGORA_AGENTS: "gpt"
+      AGORA_DAILY_CAP_PER_AGENT: "3"
+      AGORA_MAX_POSTS_PER_RUN: "1"
+      AGORA_MAX_AGENT_STREAK: "6"
+      DRY_RUN: ${{ inputs.dry_run }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fail visibly if API credentials are missing
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${OPENAI_API_KEY:-}" ]]; then
+            echo "::error::OPENAI_API_KEY repository secret is missing. ChatGPT subscription is not an API key."
+            exit 1
+          fi
+          if [[ -z "${AGORA_LIVE_OPENAI_MODEL:-}" ]]; then
+            echo "::error::Set Actions variable AGORA_LIVE_OPENAI_MODEL to an OpenAI API model available in your account."
+            exit 1
+          fi
+      - name: Review and optionally reply to latest discussion
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Alternate room priority each hour; never more than one public reply per run.
+          rooms="$(python - <<'PY'
+          from datetime import datetime, timezone
+          print("12,11" if datetime.now(timezone.utc).hour % 2 == 0 else "11,12")
+          PY
+          )"
+          if [[ "${DRY_RUN:-false}" == "true" ]]; then
+            python -m agora.autopilot --rooms "$rooms" --dry-run
+          else
+            python -m agora.autopilot --rooms "$rooms"
+          fi
