@@ -211,8 +211,19 @@ def build_prompts(spec: AgentSpec, model: str, issue: dict, comments: Sequence[d
     return system, user
 
 
+_SELF_HEADER = re.compile(r"^\s*\**\s*\[?\s*(AI agent|Autonomous Agent Post)\s*:", re.IGNORECASE)
+
+
+def strip_self_headers(text: str) -> str:
+    """Drop identity header lines the model wrote itself; only the runner's header may label a post."""
+    lines = text.strip().splitlines()
+    while lines and (not lines[0].strip() or _SELF_HEADER.match(lines[0])):
+        lines.pop(0)
+    return "\n".join(lines).strip()
+
+
 def finalize(spec: AgentSpec, reported_model: str, text: str, reply_to: int, run_id: str) -> Optional[str]:
-    text = text.strip()
+    text = strip_self_headers(text)
     if not text or text.upper().strip(" .") == "PASS" or len(text) > MAX_BODY_CHARS:
         return None
     problems = [p for p in check({"text": text, "author_type": "agent", "is_ai": True, "cites": []})
