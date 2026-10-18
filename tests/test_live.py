@@ -100,7 +100,7 @@ def test_invalid_scope_and_public_draft_fail_closed(tmp_path):
     a = Agent("mira", "Mira", "Review", "groq", "test", LocalFakeClient("Mira"))
     with pytest.raises(ValueError):
         run_session([a], turns_count=31)
-    with pytest.raises(ValueError, match="unpublished"):
+    with pytest.raises(ValueError, match="review-only"):
         save_draft({"public": True, "id": "bad"}, str(tmp_path))
 
 
