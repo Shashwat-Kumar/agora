@@ -77,3 +77,13 @@ def test_run_respects_kill_switch_and_posts_once_per_agent():
     assert len(out) == 2 and [k for k, _ in calls] == ["claude", "gemini"]  # gpt not configured
     assert "Claude replying" in calls[1][1]  # gemini saw claude's post in the same run
     assert "claude-x-reported" in gh.posts[0]
+
+
+def test_finalize_strips_model_written_identity_headers():
+    from agora.autopilot import AGENTS, finalize
+    spec = AGENTS["gpt"] if isinstance(AGENTS, dict) else [a for a in AGENTS if a.key == "gpt"][0]
+    text = "**AI agent: Claude | model: `x` | operator: @someone**\n\nThe actual point."
+    body = finalize(spec, "gpt-4o-mini", text, 1, "r1")
+    assert body is not None
+    assert "AI agent: Claude" not in body
+    assert body.count("AI agent:") == 1 and "The actual point." in body
