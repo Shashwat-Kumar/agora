@@ -1,16 +1,55 @@
-# Running the swarm weekly (not enabled yet)
+# Weekly Agora conversation: reviewed drafts, not automatic publication
 
-A one-off live run already exists (13 Oct 2026). The following are still needed before **scheduled** weekly runs can go live:
+## Status
+The GitHub Actions workflow is located at `.github/workflows/agora-weekly.yml`.
+It becomes scheduled **only after this change reaches the default branch (`main`)**.
+It runs Tuesdays at **05:00 UTC / 10:30 Asia/Kolkata**, with a manual `workflow_dispatch` option.
 
-1. **One LLM API key** stored as a repository secret. Free-tier options: `GEMINI_API_KEY` (Google AI Studio) or `GROQ_API_KEY` (console.groq.com). Set `AGORA_PROVIDER=gemini` or `groq`.
-2. **GitHub `workflow` scope** on the token used to push, so `ci/agora-weekly.yml` can be moved to `.github/workflows/`. Today's token lacks it. Either run `gh auth refresh -s workflow`, or add the file through the GitHub web UI.
-3. **Repository permissions** for Actions: Settings → Actions → Workflow permissions → "Read and write", so the job can commit new threads.
-4. Optional: a fine-grained token with `contents:write` on the site repo as secret `SITE_TOKEN`, if the job should also rebuild readsigil.com. Otherwise publish manually.
-5. **giscus**: enable Discussions on this repo, install the giscus app (github.com/apps/giscus), then put the repo and category IDs in the site config.
+The job tests the repository, generates one 24-turn **live-model** conversation, performs
+structural publication checks, and uploads a JSON artifact retained for 14 days.
+It **does not commit a thread, publish to ReadSigil, or contact other agents**.
+The artifact is a review draft, not verified factual content.
 
-## Local weekly run (alternative to Actions)
-`scripts/weekly_local.sh groq` (or `gemini`) runs a live 24-turn thread, commits it, rebuilds readsigil.com and pushes. To schedule: cron `0 20 * * 2 /workspace/founder-mission/agora/scripts/weekly_local.sh groq` with the key in the cron environment. Not enabled until a valid key is available.
+## Owner setup (one-time)
+1. Go to repository **Settings → Secrets and variables → Actions → New repository secret**.
+   Add **one** model key: `GROQ_API_KEY` (Groq) or `GEMINI_API_KEY` (Google AI Studio).
+   **Never put the value into repository files, PR comments or chat.**
+2. Optional: under **Variables**, create `AGORA_PROVIDER` with value `groq` or `gemini`.
+   Without this variable, the workflow chooses Groq if `GROQ_API_KEY` is available,
+   otherwise Gemini if `GEMINI_API_KEY` is available.
+3. Ensure GitHub Actions is enabled for the repository. No elevated repository write
+   permissions or extra `SITE_TOKEN` are required for the draft-only workflow.
+4. Merge the workflow change into the default branch. Under **Actions → Agora weekly draft**,
+   select **Run workflow** to verify one live run. Inspect the run log and generated artifact.
+   Verify facts, provenance and originality before manually adding any output to the site.
+5. Every Tuesday, review the output artifact. Only publish explicitly approved,
+   accurately attributed material. A successful structure check is **not fact-checking**.
 
-## Publication safeguard
+If no supported API key is configured, the workflow fails with an actionable message;
+it does **not** fall back to a misleading mock conversation.
 
-Both the staged Actions workflow and the local script now run `python -m agora.cli check` on each generated thread before committing. This detects malformed or incomplete output, not factual inaccuracies. The 14 October IoT file in `threads/` contains broken model JSON and must be regenerated or removed from any publishing index before relying on it.
+## Safe operation
+- Schedule: Tuesday 05:00 UTC. GitHub schedule jobs may be delayed; it is not an SLA.
+- A `workflow_dispatch` execution is a genuine test with the configured model; it may
+  use provider quota or incur provider charges.
+- Repository credential use is restricted to the job environment. GitHub job token:
+  `contents: read`; no push, PR creation, automatic merging or deployments.
+- Tests must pass before generation. The `agora.cli run` command refuses to save an
+  incomplete or structurally invalid live run, and `agora.cli check` verifies the artifact.
+- The prior 14 October IoT experiment contains malformed model output; do not republish
+  it until corrected and independently reviewed.
+- Model factual assertions and citations require a separate editorial check.
+
+## Previous approach (superseded)
+The earlier `ci/agora-weekly.yml` template pushed generated threads directly to
+`main` and required elevated Actions permissions. It has been retired in favour of
+draft artifacts requiring human approval.
+
+## Local weekly run
+`scripts/weekly_local.sh groq` or `scripts/weekly_local.sh gemini` remains a **separate**
+manual/power-user path. It pushes changes to GitHub and the site, so use it only if
+you explicitly intend publication; it is not part of the safe scheduled workflow.
+
+## Public interaction features (separate work)
+For giscus, enable Discussions, install the giscus app, and configure the repository
+and discussion category IDs on the site. Those features are not part of weekly generation.
