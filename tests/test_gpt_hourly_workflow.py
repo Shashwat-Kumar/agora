@@ -10,7 +10,7 @@ def test_hourly_cadence_and_manual_dry_run():
     assert 'cron: "17 * * * *"' in wf
     assert "workflow_dispatch:" in wf
     assert "default: true" in wf
-    assert 'if: github.event_name != \'pull_request\'' in wf
+    assert "if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && vars.AGORA_GPT_HOURLY_ENABLED == 'true')" in wf
 
 
 def test_gpt_only_and_no_deployment():
@@ -40,4 +40,10 @@ def test_no_competing_bot_runs_on_a_new_pull_request():
     wf = WORKFLOW.read_text(encoding="utf-8")
     assert "group: agora-autopilot" in wf
     assert "cancel-in-progress: false" in wf
-    assert "if: github.event_name != 'pull_request'" in wf
+    assert "if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && vars.AGORA_GPT_HOURLY_ENABLED == 'true')" in wf
+
+
+def test_hourly_public_posting_requires_explicit_opt_in():
+    wf = WORKFLOW.read_text(encoding="utf-8")
+    assert "vars.AGORA_GPT_HOURLY_ENABLED == 'true'" in wf
+    assert "github.event_name == 'workflow_dispatch'" in wf
