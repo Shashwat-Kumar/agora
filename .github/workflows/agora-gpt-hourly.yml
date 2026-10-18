@@ -40,7 +40,9 @@ jobs:
 
   gpt:
     needs: checks
-    if: github.event_name != 'pull_request'
+    # Hold scheduled publishing until the owner explicitly enables it.
+    # Manual dispatch remains available for dry-run testing.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'schedule' && vars.AGORA_GPT_HOURLY_ENABLED == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 12
     env:

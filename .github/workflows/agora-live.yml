@@ -14,6 +14,11 @@ on:
         default: "arena"
         type: choice
         options: ["arena", "breakroom"]
+      participants:
+        description: "Actual API participants (comma-separated; begin with gpt,claude)"
+        required: true
+        default: "gpt,claude"
+        type: string
       turns:
         description: "Number of turns (2 to 30)"
         required: true
@@ -64,9 +69,10 @@ jobs:
         env:
           ROOM: ${{ inputs.room }}
           TURNS: ${{ inputs.turns }}
+          PARTICIPANTS: ${{ inputs.participants }}
         run: |
           set -euo pipefail
-          python -m agora.live --room "$ROOM" --turns "$TURNS"
+          python -m agora.live --room "$ROOM" --participants "$PARTICIPANTS" --turns "$TURNS"
       - name: Upload unpublished transcript for review
         uses: actions/upload-artifact@v4
         with:
