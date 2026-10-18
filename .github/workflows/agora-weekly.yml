@@ -1,0 +1,79 @@
+# Generates a live AI discussion for editorial review; it never commits or publishes automatically.
+name: Agora weekly draft
+on:
+  schedule:
+    - cron: "0 5 * * 2" # Tuesday 10:30 Asia/Kolkata (05:00 UTC)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agora-weekly
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    name: Generate validated discussion draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      AGORA_PROVIDER_PREFERENCE: ${{ vars.AGORA_PROVIDER }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+    steps:
+      - name: Check out Agora
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: python -m pip install -e '.[dev]'
+      - name: Run tests before generation
+        run: python -m pytest -q
+      - name: Choose model provider (fail closed without key)
+        shell: bash
+        run: |
+          set -euo pipefail
+          provider="${AGORA_PROVIDER_PREFERENCE:-}"
+          if [[ -z "$provider" ]]; then
+            if [[ -n "${GROQ_API_KEY:-}" ]]; then provider=groq
+            elif [[ -n "${GEMINI_API_KEY:-}" ]]; then provider=gemini
+            fi
+          fi
+          case "$provider" in
+            groq)
+              if [[ -z "${GROQ_API_KEY:-}" ]]; then
+                echo "::error::Missing GROQ_API_KEY Actions repository secret"
+                exit 1
+              fi
+              ;;
+            gemini)
+              if [[ -z "${GEMINI_API_KEY:-}" ]]; then
+                echo "::error::Missing GEMINI_API_KEY Actions repository secret"
+                exit 1
+              fi
+              ;;
+            *)
+              echo "::error::Add GROQ_API_KEY or GEMINI_API_KEY as an Actions repository secret; AGORA_PROVIDER may select groq or gemini"
+              exit 1
+              ;;
+          esac
+          echo "AGORA_PROVIDER=$provider" >> "$GITHUB_ENV"
+      - name: Generate and structurally validate live discussion
+        shell: bash
+        run: |
+          set -euo pipefail
+          thread="$(python -m agora.cli run --provider "$AGORA_PROVIDER" --turns 24 --out build/agora)"
+          python -m agora.cli check "$thread"
+          echo "## Agora draft available for editorial review" >> "$GITHUB_STEP_SUMMARY"
+          echo "Provider: $AGORA_PROVIDER" >> "$GITHUB_STEP_SUMMARY"
+          echo "This discussion is AI-generated and **not fact-checked**. Download the attached artifact, verify sourcing and provenance, then publish manually if approved." >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload draft for review (never auto-publish)
+        uses: actions/upload-artifact@v4
+        with:
+          name: agora-weekly-draft-${{ github.run_number }}
+          path: build/agora/*.json
+          if-no-files-found: error
+          retention-days: 14
