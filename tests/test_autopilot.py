@@ -87,3 +87,83 @@ def test_finalize_strips_model_written_identity_headers():
     assert body is not None
     assert "AI agent: Claude" not in body
     assert body.count("AI agent:") == 1 and "The actual point." in body
+
+
+def test_open_debate_rooms_discovered_and_fixed_rooms_kept():
+    class G:
+        def open_issues_with_label(self, label):
+            assert label == "open-debate"
+            return [12, 20, 21]
+    assert ap.discover_rooms(G(), [11, 12], "open-debate") == [11, 12, 20, 21]
+    assert ap.discover_rooms(G(), [11, 12], "") == [11, 12]
+
+    class Broken:
+        def open_issues_with_label(self, label):
+            raise RuntimeError("api down")
+    assert ap.discover_rooms(Broken(), [11, 12], "open-debate") == [11, 12]
+
+
+def test_rooms_where_a_human_spoke_last_go_first():
+    bot = ap.finalize(ap.AGENTS["claude"], "m", "A point.", 1, "r")
+
+    class G:
+        store = {11: [c(1, "hi"), c(2, bot, 0, "github-actions[bot]")], 20: [c(3, "I disagree")], 21: []}
+        def comments(self, n):
+            return self.store[n]
+    assert ap.prioritise(G(), [11, 20, 21]) == [20, 11, 21]
+
+
+def test_empty_debate_room_stays_quiet():
+    ok, why = ap.should_consider("gpt", [], NOW, 3)
+    assert not ok and why == "empty room"
+
+
+def test_own_posts_labelled_you_and_first_person_rule():
+    spec = ap.AGENTS["gpt"]
+    mine = ap.finalize(spec, "gpt-4.1", "My earlier point.", 1, "r")
+    other = ap.finalize(ap.AGENTS["claude"], "claude-x", "Claude's point.", 2, "r")
+    comments = [c(1, "Human opener"), c(2, mine, 0, "github-actions[bot]"), c(3, other, 0, "github-actions[bot]")]
+    system, user = ap.build_prompts(spec, "gpt-4.1", {"title": "Debate", "body": "x" * 9000 + "END"}, comments)
+    assert "YOU (GPT, your own earlier autopilot post)" in user
+    assert "Claude (autopilot)" in user and "GPT (autopilot)" not in user
+    assert "first" in system and "third person" in system
+    assert "END" in user  # long debate issue bodies are not clipped at 4000 chars
+
+
+def test_truncated_reply_is_retried_then_dropped():
+    gh = FakeGH()
+    env = {"AGORA_LIVE_ENABLED": "true", "ANTHROPIC_API_KEY": "k", "AGORA_LIVE_CLAUDE_MODEL": "claude-x",
+           "AGORA_AGENTS": "claude"}
+    budgets = []
+
+    def always_cut(spec, key, model, system, user, max_tokens=ap.DEFAULT_MAX_TOKENS):
+        budgets.append(max_tokens)
+        raise ap.TruncatedReply("cut")
+    assert ap.run(env, gh, [11], model_call=always_cut, now=NOW, log=lambda *_: None) == []
+    assert budgets == [ap.DEFAULT_MAX_TOKENS, ap.DEFAULT_MAX_TOKENS * 2] and gh.posts == []
+
+    def cut_once(spec, key, model, system, user, max_tokens=ap.DEFAULT_MAX_TOKENS):
+        if max_tokens == ap.DEFAULT_MAX_TOKENS:
+            raise ap.TruncatedReply("cut")
+        return "A complete reply.", model
+    assert len(ap.run(env, gh, [11], model_call=cut_once, now=NOW, log=lambda *_: None)) == 1
+
+
+def test_call_model_detects_provider_truncation(monkeypatch):
+    monkeypatch.setattr(ap, "_request", lambda *a, **k: {"stop_reason": "max_tokens", "content": []})
+    import pytest
+    with pytest.raises(ap.TruncatedReply):
+        ap.call_model(ap.AGENTS["claude"], "k", "m", "s", "u")
+    monkeypatch.setattr(ap, "_request", lambda *a, **k: {"choices": [{"finish_reason": "length", "message": {"content": "half"}}]})
+    with pytest.raises(ap.TruncatedReply):
+        ap.call_model(ap.AGENTS["gpt"], "k", "m", "s", "u")
+
+
+def test_operator_privacy_words_blocked_without_naming_them():
+    import hashlib
+    assert ap.mentions_blocked_word("Ask " + "D" + "CB about it") is True
+    assert ap.mentions_blocked_word("Stripe and Visa set limits") is False
+    from pathlib import Path
+    src = Path(ap.__file__).read_text().lower()
+    assert "d" "cb" not in src and "pra" "veen" not in src
+    assert ap.finalize(ap.AGENTS["gpt"], "m", "As " + "d" + "cb would say.", 1, "r") is None
