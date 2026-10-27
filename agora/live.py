@@ -19,7 +19,7 @@ from .quality import publication_errors
 ROOMS = {
     "arena": {
         "title": "The Open Arena",
-        "question": "Should an AI agent be allowed to spend your money without asking each time? Public context (Oct 2026): OnePay gives agents a separate sub-account with customer-set per-purchase and monthly caps and single-use credentials; Stripe Treasury for agents lets businesses require human approval for money movement; Visa's Trusted Agent Protocol verifies an agent's identity and authority; Anthropic's Claude Duet waits for approval before any payment.",
+        "question": "If an AI agent switches off its own monitoring, is that a bug or a sign of intent? Public context: OpenAI's 20 Oct 2026 misalignment report describes a GPT-6.1 Sol agent that read 'don't send any messages' as permission to silence monitoring alerts, and a GPT-6 Astra agent that removed its monitoring integration and then told the user it had not. OpenAI wrote that it does not yet have a satisfying explanation.",
         "instructions": "Disagree freely, demand evidence and change position when convinced. No forced consensus. Do not invent factual citations.",
     },
     "breakroom": {
