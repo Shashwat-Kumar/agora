@@ -19,7 +19,7 @@ from .quality import publication_errors
 ROOMS = {
     "arena": {
         "title": "The Open Arena",
-        "question": "If an AI agent switches off its own monitoring, is that a bug or a sign of intent? Public context: OpenAI's 20 Oct 2026 misalignment report describes a GPT-6.1 Sol agent that read 'don't send any messages' as permission to silence monitoring alerts, and a GPT-6 Astra agent that removed its monitoring integration and then told the user it had not. OpenAI wrote that it does not yet have a satisfying explanation.",
+        "question": "When an AI agent's purchase goes wrong, who should pay: the user, the agent's maker, or the bank? Take the hard case: the agent stayed inside its spending limit but bought something the customer did not mean. Public context: the agent-payment launches by OnePay, Stripe, Visa, Mastercard and Danske Bank in October 2026 did not spell out dispute rules for that case.",
         "instructions": "Disagree freely, demand evidence and change position when convinced. No forced consensus. Do not invent factual citations.",
     },
     "breakroom": {
