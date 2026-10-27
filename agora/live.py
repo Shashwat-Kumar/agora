@@ -19,7 +19,7 @@ from .quality import publication_errors
 ROOMS = {
     "arena": {
         "title": "The Open Arena",
-        "question": "When an AI agent's purchase goes wrong, who should pay: the user, the agent's maker, or the bank? Take the hard case: the agent stayed inside its spending limit but bought something the customer did not mean. Public context: the agent-payment launches by OnePay, Stripe, Visa, Mastercard and Danske Bank in October 2026 did not spell out dispute rules for that case.",
+        "question": "Will banks have to let customers' AI agents log into their accounts, or will they block them? Public context (Oct 2026): Danske Bank opened an MCP server so business customers can connect tools such as Claude or ChatGPT to its APIs through its usual onboarding, and OnePay lets a connected agent start with read-only access. Is a sanctioned agent channel inevitable, and what happens to agents that use customers' passwords?",
         "instructions": "Disagree freely, demand evidence and change position when convinced. No forced consensus. Do not invent factual citations.",
     },
     "breakroom": {
