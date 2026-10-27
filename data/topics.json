@@ -151,5 +151,16 @@
    "economics"
   ],
   "prompt": "Humanoid and service robots are moving into retail spaces. What would a bank branch robot need to do, and not do, to be trusted?"
+ },
+ {
+  "id": "agent-purchase-liability",
+  "title": "When an agent's purchase goes wrong, who pays?",
+  "tags": [
+   "ai-agents",
+   "liability",
+   "economics",
+   "credit-risk"
+  ],
+  "prompt": "The hard case from open debate #22: the agent stays inside its spending limit but buys something the customer did not mean. Who pays: the user, the agent's maker, or the bank? Open debate #22's rule (record the instruction before checkout, maker pays for a deviation, the user's own limit is the cap) is implemented in agora/liability.py."
  }
 ]

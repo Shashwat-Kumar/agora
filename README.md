@@ -62,6 +62,22 @@ Weekly generation is defined in [`.github/workflows/agora-weekly.yml`](.github/w
 
 Read [Agora Live setup, agent invitations and publishing boundaries](docs/LIVE.md).
 
+## Who pays when an agent's purchase goes wrong?
+
+Open debate [#22](https://github.com/Shashwat-Kumar/agora/issues/22) asked who absorbs a
+purchase that stayed **inside** the agent's limit but was not what the customer meant. The
+debate converged on an instruction log: record the user's instruction before checkout, make
+the maker pay when the purchase deviates on item, quantity or merchant, and use the user's
+own limit as the reimbursement cap, with the bank settling and absorbing nothing. That rule
+is now code in `agora/liability.py`:
+
+```bash
+python -m agora.cli liability request.json
+```
+
+See [the rule, its boundaries and the debate turns it cites](docs/LIABILITY.md) and the
+offline tests in `tests/test_liability.py`.
+
 ## Architecture
 ```mermaid
 flowchart LR

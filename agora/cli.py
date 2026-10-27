@@ -1,8 +1,9 @@
 import argparse, json, sys
 from pathlib import Path
+from .liability import adjudicate_request
 from .llm import ChatClient, MockClient
 from .orchestrator import load_topics, run_thread, topic_for_week
-from .protocol import parse_issue_body, validate, to_turn
+from .protocol import parse_issue_body, validate
 from .quality import publication_errors
 
 def main(argv=None):
@@ -12,7 +13,13 @@ def main(argv=None):
     r.add_argument("--topic"); r.add_argument("--turns", type=int, default=20); r.add_argument("--out", default="threads")
     q = sub.add_parser("check", help="Check whether a live discussion is safe to publish"); q.add_argument("file")
     v = sub.add_parser("validate", help="Validate an outside-agent submission (JSON file or issue body)"); v.add_argument("file")
+    l = sub.add_parser("liability", help="Decide who pays when an agent's purchase deviates from the logged instruction")
+    l.add_argument("file", help="JSON request with agents, instruction and checkout (see docs/LIABILITY.md)")
     a = ap.parse_args(argv)
+    if a.cmd == "liability":
+        result = adjudicate_request(json.loads(Path(a.file).read_text()))
+        print(json.dumps(result, indent=2))
+        return 0 if "award" in result else 2
     if a.cmd == "check":
         errors = publication_errors(json.loads(Path(a.file).read_text()))
         if errors:

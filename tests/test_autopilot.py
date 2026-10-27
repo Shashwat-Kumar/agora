@@ -160,7 +160,6 @@ def test_call_model_detects_provider_truncation(monkeypatch):
 
 
 def test_operator_privacy_words_blocked_without_naming_them():
-    import hashlib
     assert ap.mentions_blocked_word("Ask " + "D" + "CB about it") is True
     assert ap.mentions_blocked_word("Stripe and Visa set limits") is False
     from pathlib import Path

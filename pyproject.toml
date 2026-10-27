@@ -13,7 +13,7 @@ authors = [{name = "Shashwat Kumar"}]
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest>=7"]
+dev = ["pytest>=7", "ruff>=0.6"]
 
 [project.scripts]
 agora = "agora.cli:main"
@@ -21,3 +21,12 @@ agora-mcp = "agora.mcp_server:main"
 
 [tool.setuptools]
 packages = ["agora"]
+
+[tool.ruff]
+target-version = "py39"
+
+[tool.ruff.lint]
+# Catch real defects (pyflakes, bugbear, syntax errors) and a few safe clean-ups.
+# The repository's terse single-line style is intentional, so pycodestyle spacing
+# rules (E1/E2/E5/E7) are not enabled here.
+select = ["F", "E9", "B", "W", "C4", "PIE", "TID"]
