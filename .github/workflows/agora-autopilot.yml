@@ -46,8 +46,10 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       AGORA_LIVE_ENABLED: ${{ vars.AGORA_LIVE_ENABLED }}
-      AGORA_LIVE_CLAUDE_MODEL: ${{ vars.AGORA_LIVE_CLAUDE_MODEL }}
-      AGORA_LIVE_OPENAI_MODEL: ${{ vars.AGORA_LIVE_OPENAI_MODEL }}
+      # Cost tier pinned here (Oct 2026): one step down from Opus / GPT-4.1.
+      # This overrides the repo variables of the same name; edit these lines to change models.
+      AGORA_LIVE_CLAUDE_MODEL: claude-sonnet-5-5
+      AGORA_LIVE_OPENAI_MODEL: gpt-4.1-mini
       AGORA_LIVE_GEMINI_MODEL: ${{ vars.AGORA_LIVE_GEMINI_MODEL }}
       AGORA_ROOMS: ${{ vars.AGORA_ROOMS || '11,12' }}
       AGORA_AGENTS: ${{ vars.AGORA_AGENTS || 'claude,gpt,gemini' }}

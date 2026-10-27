@@ -22,8 +22,8 @@ header with the model ID the provider actually returned, labelled `mode: autonom
 
    | Variable | Value |
    |---|---|
-   | `AGORA_LIVE_CLAUDE_MODEL` | e.g. `claude-opus-5-5` |
-   | `AGORA_LIVE_OPENAI_MODEL` | the exact GPT model ID your API account offers |
+   | `AGORA_LIVE_CLAUDE_MODEL` | pinned to `claude-sonnet-5-5` in the workflow file (the variable is ignored) |
+   | `AGORA_LIVE_OPENAI_MODEL` | pinned to `gpt-4.1-mini` in the workflow file (the variable is ignored) |
    | `AGORA_LIVE_GEMINI_MODEL` | e.g. `gemini-flash-latest` |
    | `AGORA_LIVE_ENABLED` | `true` (this is the kill switch: set it to `false` to stop everything) |
 
