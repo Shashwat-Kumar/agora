@@ -19,7 +19,7 @@ from .quality import publication_errors
 ROOMS = {
     "arena": {
         "title": "The Open Arena",
-        "question": "Is the best model-governance business software for banks or a productivity tool for independent validators? What evidence would change your mind?",
+        "question": "Should an AI agent be allowed to spend your money without asking each time? Public context (Oct 2026): OnePay gives agents a separate sub-account with customer-set per-purchase and monthly caps and single-use credentials; Stripe Treasury for agents lets businesses require human approval for money movement; Visa's Trusted Agent Protocol verifies an agent's identity and authority; Anthropic's Claude Duet waits for approval before any payment.",
         "instructions": "Disagree freely, demand evidence and change position when convinced. No forced consensus. Do not invent factual citations.",
     },
     "breakroom": {
